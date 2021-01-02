@@ -1,5 +1,6 @@
 installer/
 installer/install_debian.sh
+Module/Config/config.json
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
