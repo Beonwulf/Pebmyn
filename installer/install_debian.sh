@@ -28,7 +28,7 @@ elif [ "$HAS_SUDO" == 'has_sudo__needs_pass' ]
 		echo "you should have sudo priveledge to run this script"
 		exit 1
 elif [ "$HAS_SUDO" == 'has_sudo__pass_set' ]
-	then echo "Capuah ich beginne!"
+	then echo "Debian! Ich beginne!"
 fi
 sudo -n true
 test $? -eq 0 || exit 1 "you should have sudo priveledge to run this script"
@@ -83,9 +83,73 @@ NameVirtualHost *:$port
 ENDOFFILE
 }
 
+####
+# check visudo -f ....
+# 400
+#
 function createSudoersPebmyn() {
+	if [ -n ${1+x} ]; then
+		user=$1
+	else
+		user=$USER
+	fi
 	sudo cat > /etc/sudoers.d/pebmyn << ENDOFFILE
+#Runas-Alias specification
+Runas_Alias WEB = www-data, apache
+
+# User-Alias specification
+User_Alias  WEBMASTER1 = $user
+User_Alias  APTITUDE = $user
+User_Alias  GAMEMASTER = $user
+User_Alias  VOICEMASTER = $user
+
+# Comand-Alias specification
+Cmnd_Alias  CMD_APACHE2 = /usr/sbin/apache2
+Cmnd_Alias  CMD_APACHE_EN = /usr/sbin/a2enconf, /usr/sbin/a2enmod, /usr/sbin/a2ensite
+Cmnd_Alias  CMD_APACHE_DIS = /usr/sbin/a2disconf, /usr/sbin/a2dismod, /usr/sbin/a2dissite
+Cmnd_Alias  CMD_APT = /usr/bin/apt-get
+
+# User privilege specification
+#$user       ALL=(ALL:ALL) ALL
+WEBMASTER1  ALL = (WEB) NOPASSWD: CM_APACHE2, CMD_APACHE_EN, CMD_APACHE_DIS
+#APTITUDE    ALL = NOPASSWD: CMD_APT
 ENDOFFILE
+}
+
+function createApache2modSecurityConf() {
+	sudo cat > /etc/apache2/conf-available/mod_security.conf << ENDOFFILE
+<IfModule mod_security.c>
+	# Turn the filtering engine On or Off
+	SecFilterEngine On
+
+	# Make sure that URL encoding is valid
+	SecFilterCheckURLEncoding On
+
+	# Unicode encoding check
+	SecFilterCheckUnicodeEncoding Off
+
+	# Only allow bytes from this range
+	SecFilterForceByteRange 0 255
+
+	# Only log suspicious requests
+	SecAuditEngine RelevantOnly
+
+	# The name of the audit log file
+	SecAuditLog /var/log/apache2/audit_log
+	# Debug level set to a minimum
+	SecFilterDebugLog /var/log/apache2/modsec_debug_log
+	SecFilterDebugLevel 0
+
+	# Should mod_security inspect POST payloads
+	SecFilterScanPOST On
+
+	# By default log and deny suspicious requests
+	# with HTTP status 500
+	SecFilterDefaultAction "deny,log,status:500"
+
+</IfModule>
+ENDOFFILE
+#sudo a2enconf mod_security
 }
 
 #sudo apt-get update
