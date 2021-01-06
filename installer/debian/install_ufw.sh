@@ -23,5 +23,7 @@ elif [ "$HAS_SUDO" == 'has_sudo__needs_pass' ]
 		echo "you should have sudo priveledge to run this script"
 		exit 1
 elif [ "$HAS_SUDO" == 'has_sudo__pass_set' ]
-	then sudo apt install ufw
+	then 
+		sudo apt update
+		sudo apt install ufw
 fi
