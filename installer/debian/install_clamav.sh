@@ -24,6 +24,7 @@ elif [ "$HAS_SUDO" == 'has_sudo__needs_pass' ]
 		exit 1
 elif [ "$HAS_SUDO" == 'has_sudo__pass_set' ]
 	then 
+    sudo apt update
     sudo apt install clamav clamav-freshclam
     sudo apt install clamav-daemon
 fi
